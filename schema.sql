@@ -15,6 +15,16 @@
 -- 2. CREATE TABLES
 -- =========================================================================
 
+-- Farm Users table
+CREATE TABLE IF NOT EXISTS farm_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE farm_users DISABLE ROW LEVEL SECURITY;
+
 -- Crops table
 CREATE TABLE IF NOT EXISTS crops (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
