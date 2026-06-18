@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS cattle (
   lactation_date DATE,
   lactation_count INT,
   calf_gender TEXT,
+  image_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 

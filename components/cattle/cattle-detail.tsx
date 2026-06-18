@@ -75,6 +75,11 @@ export function CattleDetail({ typeId }: { typeId: string }) {
                     <ConfirmDelete label={a.name} onConfirm={() => remove(a.id)} />
                   </div>
                 </div>
+                {a.image_url && (
+                  <div className="relative aspect-video w-full overflow-hidden rounded-md border border-border">
+                    <img src={a.image_url} alt={a.name} className="object-cover w-full h-full" />
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-1.5">
                   {a.gender && <Badge variant="outline">{a.gender}</Badge>}
                   {a.purpose && <Badge variant="secondary">{a.purpose}</Badge>}
@@ -83,6 +88,12 @@ export function CattleDetail({ typeId }: { typeId: string }) {
                   <Detail label="Lactation" value={a.lactation} />
                   {a.lactation_date && (
                     <Detail label="Lactation Date" value={formatDate(a.lactation_date)} />
+                  )}
+                  {a.lactation_count != null && (
+                    <Detail label="Lactation Count" value={String(a.lactation_count)} />
+                  )}
+                  {a.calf_gender && (
+                    <Detail label="Calf Gender" value={a.calf_gender} />
                   )}
                 </div>
                 <div className="mt-auto flex items-center justify-between border-t border-border pt-3">

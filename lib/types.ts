@@ -35,6 +35,7 @@ export type Cattle = {
   lactation_date: string | null
   lactation_count: number | null
   calf_gender: string | null
+  image_url: string | null
   created_at: string
 }
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Pencil } from "lucide-react"
+import { Plus, Pencil, X } from "lucide-react"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -42,6 +42,7 @@ export function AnimalForm({
     lactation_date: animal?.lactation_date ?? "",
     lactation_count: animal?.lactation_count != null ? String(animal.lactation_count) : "",
     calf_gender: animal?.calf_gender ?? "",
+    image_url: animal?.image_url ?? "",
   })
   const update = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }))
 
@@ -62,6 +63,7 @@ export function AnimalForm({
       lactation_date: isLactationDateRequired ? (form.lactation_date || null) : null,
       lactation_count: form.lactation_count ? Number(form.lactation_count) : null,
       calf_gender: form.calf_gender || null,
+      image_url: form.image_url || null,
     }
     const { error } = editing
       ? await supabase.from("cattle").update(payload).eq("id", animal!.id)
@@ -101,6 +103,40 @@ export function AnimalForm({
           <DialogTitle>{editing ? "Edit animal" : "Add animal"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="image">Photo</Label>
+            <div className="flex items-center gap-4">
+              {form.image_url && (
+                <div className="relative h-16 w-16">
+                  <img src={form.image_url} alt="Preview" className="h-full w-full rounded-md object-cover border" />
+                  <button
+                    type="button"
+                    onClick={() => update("image_url", "")}
+                    className="absolute -right-2 -top-2 rounded-full bg-destructive text-destructive-foreground p-0.5 hover:bg-destructive/90"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              <Input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    const reader = new FileReader()
+                    reader.onloadend = () => {
+                      update("image_url", reader.result as string)
+                    }
+                    reader.readAsDataURL(file)
+                  } else {
+                    update("image_url", "")
+                  }
+                }}
+              />
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="name">Name / Tag</Label>
