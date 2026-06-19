@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
 import { ArrowLeft, Beef, Milk, IndianRupee } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/page-header"
@@ -31,6 +33,7 @@ function Detail({ label, value }: { label: string; value: string | null }) {
 }
 
 export function CattleDetail({ typeId }: { typeId: string }) {
+  const [showLogs, setShowLogs] = useState(false)
   const { rows: types } = useTable<CattleType>("cattle_types")
   const { rows: allAnimals, mutate } = useTable<Cattle>("cattle")
   const { rows: allExpenses, mutate: mutateExpenses } = useTable<CattleExpense>("cattle_expenses")
@@ -76,13 +79,18 @@ export function CattleDetail({ typeId }: { typeId: string }) {
         description={`${animals.length} animals · ${formatCurrency(total)} total investment`}
         action={
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowLogs(!showLogs)}>
+              {showLogs ? "Hide Logs" : "View Logs"}
+            </Button>
             <OverallFeedLogForm typeId={typeId} onSaved={() => { mutate(); mutateExpenses(); }} />
             <AnimalForm typeId={typeId} onSaved={mutate} />
           </div>
         }
       />
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {showLogs && (
+        <>
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Feed Cost */}
         <Card className="border-rose-500/20 bg-rose-50/20 dark:bg-rose-950/10">
           <CardContent className="flex items-center justify-between gap-4 py-5">
@@ -186,6 +194,8 @@ export function CattleDetail({ typeId }: { typeId: string }) {
           )}
         </CardContent>
       </Card>
+      </>
+      )}
 
       {animals.length === 0 ? (
         <Card>
