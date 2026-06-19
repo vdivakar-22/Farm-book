@@ -202,7 +202,6 @@ export function AnimalExpenses({ animalId }: { animalId: string }) {
             ? `${animal.gender || ""} · ${animal.purpose || ""} · Lactation: ${animal.lactation || "N/A"}`
             : "Animal feed and milk logs"
         }
-        action={<FeedLogForm animalId={animalId} onSaved={mutate} />}
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
