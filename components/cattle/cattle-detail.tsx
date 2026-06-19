@@ -1,17 +1,25 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, Beef, ArrowRight } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { ArrowLeft, Beef, Milk, IndianRupee } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/page-header"
 import { AnimalForm } from "@/components/cattle/animal-form"
 import { OverallFeedLogForm } from "@/components/cattle/overall-food-log-form"
 import { ConfirmDelete } from "@/components/confirm-delete"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { useTable, supabase } from "@/lib/use-table"
 import { formatCurrency, formatDate } from "@/lib/format"
 import { toast } from "sonner"
-import type { CattleType, Cattle } from "@/lib/types"
+import type { CattleType, Cattle, CattleExpense } from "@/lib/types"
 
 function Detail({ label, value }: { label: string; value: string | null }) {
   return (
@@ -25,9 +33,18 @@ function Detail({ label, value }: { label: string; value: string | null }) {
 export function CattleDetail({ typeId }: { typeId: string }) {
   const { rows: types } = useTable<CattleType>("cattle_types")
   const { rows: allAnimals, mutate } = useTable<Cattle>("cattle")
+  const { rows: allExpenses, mutate: mutateExpenses } = useTable<CattleExpense>("cattle_expenses")
 
   const type = types.find((t) => t.id === typeId)
   const animals = allAnimals.filter((a) => a.type_id === typeId)
+  const animalIds = animals.map((a) => a.id)
+  
+  const expenses = allExpenses.filter((e) => animalIds.includes(e.cattle_id))
+
+  const totalExpenses = expenses.filter((e) => e.food_type !== "Milk").reduce((s, e) => s + Number(e.amount), 0)
+  const totalRevenue = expenses.filter((e) => e.food_type === "Milk").reduce((s, e) => s + Number(e.amount), 0)
+  const netProfit = totalRevenue - totalExpenses
+  const totalMilk = expenses.filter((e) => e.food_type === "Milk").reduce((s, e) => s + Number(e.milk_liters), 0)
   const total = animals.reduce((s, a) => s + Number(a.cost ?? 0), 0)
 
   async function remove(id: string) {
@@ -35,6 +52,13 @@ export function CattleDetail({ typeId }: { typeId: string }) {
     if (error) return toast.error(error.message)
     toast.success("Animal removed")
     mutate()
+  }
+
+  async function removeExpense(id: string) {
+    const { error } = await supabase.from("cattle_expenses").delete().eq("id", id)
+    if (error) return toast.error(error.message)
+    toast.success("Log removed")
+    mutateExpenses()
   }
 
   return (
@@ -52,11 +76,116 @@ export function CattleDetail({ typeId }: { typeId: string }) {
         description={`${animals.length} animals · ${formatCurrency(total)} total investment`}
         action={
           <div className="flex items-center gap-2">
-            <OverallFeedLogForm typeId={typeId} onSaved={mutate} />
+            <OverallFeedLogForm typeId={typeId} onSaved={() => { mutate(); mutateExpenses(); }} />
             <AnimalForm typeId={typeId} onSaved={mutate} />
           </div>
         }
       />
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Total Feed Cost */}
+        <Card className="border-rose-500/20 bg-rose-50/20 dark:bg-rose-950/10">
+          <CardContent className="flex items-center justify-between gap-4 py-5">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total Feed Cost</p>
+              <p className="mt-1 font-heading text-3xl font-semibold text-rose-600 dark:text-rose-455">
+                {formatCurrency(totalExpenses)}
+              </p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400">
+              <IndianRupee className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Milk Earnings */}
+        <Card className="border-emerald-500/20 bg-emerald-50/20 dark:bg-emerald-950/10">
+          <CardContent className="flex items-center justify-between gap-4 py-5">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Milk Earnings</p>
+              <p className="mt-1 font-heading text-3xl font-semibold text-emerald-600 dark:text-emerald-400">
+                {formatCurrency(totalRevenue)}
+              </p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+              <IndianRupee className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Net Profit */}
+        <Card className={netProfit >= 0 ? "border-primary/20 bg-primary/5" : "border-destructive/20 bg-destructive/5"}>
+          <CardContent className="flex items-center justify-between gap-4 py-5">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Net Profit</p>
+              <p className={`mt-1 font-heading text-3xl font-bold ${netProfit >= 0 ? "text-primary" : "text-destructive"}`}>
+                {netProfit >= 0 ? "+" : ""}{formatCurrency(netProfit)}
+              </p>
+            </div>
+            <div className={`flex h-12 w-12 items-center justify-center rounded-full ${netProfit >= 0 ? "bg-primary text-primary-foreground" : "bg-destructive text-destructive-foreground"}`}>
+              <IndianRupee className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Total Milk Yield */}
+        <Card className="border-blue-500/20 bg-blue-50/20 dark:bg-blue-950/10">
+          <CardContent className="flex items-center justify-between gap-4 py-5">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total Milk Yield</p>
+              <p className="mt-1 font-heading text-3xl font-semibold text-blue-600 dark:text-blue-400">
+                {totalMilk.toLocaleString()} L
+              </p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+              <Milk className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">Overall Food & Milk logs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {expenses.length === 0 ? (
+            <p className="py-4 text-sm text-muted-foreground">No food or milk logs recorded yet.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Animal</TableHead>
+                  <TableHead>Food Type</TableHead>
+                  <TableHead>Milk (Liters)</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>End Date</TableHead>
+                  <TableHead className="w-10" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expenses.map((e) => {
+                  const a = animals.find(an => an.id === e.cattle_id)
+                  return (
+                    <TableRow key={e.id}>
+                      <TableCell>{a ? a.name : "Unknown"}</TableCell>
+                      <TableCell className="font-medium">{e.food_type}</TableCell>
+                      <TableCell>{e.food_type === "Milk" ? `${e.milk_liters} L` : "—"}</TableCell>
+                      <TableCell>{formatCurrency(e.amount)}</TableCell>
+                      <TableCell>{e.food_type === "Milk" ? formatDate(e.start_date) : "—"}</TableCell>
+                      <TableCell>{e.food_type === "Milk" ? formatDate(e.end_date) : "—"}</TableCell>
+                      <TableCell>
+                        <ConfirmDelete label="this log" onConfirm={() => removeExpense(e.id)} />
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       {animals.length === 0 ? (
         <Card>
@@ -101,16 +230,6 @@ export function CattleDetail({ typeId }: { typeId: string }) {
                   {a.calf_gender && (
                     <Detail label="Calf Gender" value={a.calf_gender} />
                   )}
-                </div>
-                <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
-                  <span />
-                  <Link
-                    href={`/cattle/animal/${a.id}`}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-                  >
-                    Expenses & Milk
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
                 </div>
               </CardContent>
             </Card>
