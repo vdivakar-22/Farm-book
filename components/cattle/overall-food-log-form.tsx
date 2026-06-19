@@ -88,8 +88,8 @@ export function OverallFeedLogForm({ typeId, onSaved }: { typeId: string; onSave
       setForm({ animal_id: "", food_type: "Cotton Seed", milk_liters: "", amount: "", start_date: "", end_date: "" })
       setOpen(false)
       onSaved()
-    } catch (error: any) {
-      toast.error(error.message)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
     } finally {
       setLoading(false)
     }
