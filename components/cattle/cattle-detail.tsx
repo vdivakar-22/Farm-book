@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/page-header"
 import { AnimalForm } from "@/components/cattle/animal-form"
+import { OverallFeedLogForm } from "@/components/cattle/overall-food-log-form"
 import { ConfirmDelete } from "@/components/confirm-delete"
 import { useTable, supabase } from "@/lib/use-table"
 import { formatCurrency, formatDate } from "@/lib/format"
@@ -49,7 +50,12 @@ export function CattleDetail({ typeId }: { typeId: string }) {
       <PageHeader
         title={type ? type.type : "Cattle"}
         description={`${animals.length} animals · ${formatCurrency(total)} total investment`}
-        action={<AnimalForm typeId={typeId} onSaved={mutate} />}
+        action={
+          <div className="flex items-center gap-2">
+            <OverallFeedLogForm typeId={typeId} onSaved={mutate} />
+            <AnimalForm typeId={typeId} onSaved={mutate} />
+          </div>
+        }
       />
 
       {animals.length === 0 ? (

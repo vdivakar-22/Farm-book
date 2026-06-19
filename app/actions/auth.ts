@@ -23,7 +23,12 @@ export async function login(userId: string, pass: string) {
     .select("*")
     .eq("user_id", userId)
     .eq("password", pass)
-    .single()
+    .maybeSingle()
+
+  if (error) {
+    console.error("Supabase Login Error:", error)
+    return { success: false, error: "Database error occurred" }
+  }
 
   if (data) {
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
