@@ -97,11 +97,9 @@ export function OverallFeedLogForm({ typeId, onSaved }: { typeId: string; onSave
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <Plus className="mr-2 h-4 w-4" />
-          Add food log
-        </Button>
+      <DialogTrigger render={<Button variant="outline" />}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add food log
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
