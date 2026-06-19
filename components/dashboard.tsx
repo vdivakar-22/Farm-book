@@ -106,18 +106,6 @@ export function Dashboard() {
         </CardContent>
       </Card>
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        {stats.map(({ label, href }) => (
-          <Link
-            key={href}
-            href={href}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium transition-colors hover:border-primary/40"
-          >
-            Manage {label.toLowerCase().replace(" logged", "").replace(" logs", "")}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        ))}
-      </div>
     </div>
   )
 }
